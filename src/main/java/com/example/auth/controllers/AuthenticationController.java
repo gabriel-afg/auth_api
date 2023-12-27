@@ -1,8 +1,10 @@
 package com.example.auth.controllers;
 
 import com.example.auth.domain.user.AuthenticationDTO;
+import com.example.auth.domain.user.LoginResponseDTO;
 import com.example.auth.domain.user.RegisterDTO;
 import com.example.auth.domain.user.User;
+import com.example.auth.infra.security.TokenService;
 import com.example.auth.repositories.UserRepository;
 import jakarta.validation.Valid;
 import org.apache.coyote.Response;
@@ -27,12 +29,17 @@ public class AuthenticationController {
     @Autowired
     private UserRepository repository;
 
+    @Autowired
+    private TokenService tokenService;
+
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody @Valid AuthenticationDTO data){
         var usernamePassword = new UsernamePasswordAuthenticationToken(data.login(), data.password());
         var auth = authenticationManager.authenticate(usernamePassword);
 
-        return ResponseEntity.ok().build();
+        var token = tokenService.generateToken((User)auth.getPrincipal());
+
+        return ResponseEntity.ok(new LoginResponseDTO(token));
 
     }
 
